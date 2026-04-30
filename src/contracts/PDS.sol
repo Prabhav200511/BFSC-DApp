@@ -23,6 +23,17 @@ contract PDS {
         string item;
     }
 
+    enum PickupStatus { Assigned, PickedUp, Delivered, Confirmed }
+
+    struct _RationPickup {
+        uint256 id;
+        address deliveryAgent;
+        uint256 shopId;
+        uint256[] bagIds;
+        PickupStatus status;
+        uint256 assignedTime;
+    }
+
     // Historical Events
     event Transfered(
         uint256 id,
@@ -60,6 +71,16 @@ contract PDS {
     event ItemAdded(uint256 id, string name, uint256 price);
     event ItemPriceUpdated(uint256 id, uint256 newPrice);
 
+    // Delivery & Inventory Events
+    event DeliveryAgentAdded(address agent);
+    event DeliveryAgentRemoved(address agent);
+    event RationPickupAssigned(uint256 pickupId, address deliveryAgent, uint256 shopId);
+    event RationPickedUp(uint256 pickupId, address deliveryAgent);
+    event RationDeliveredToShop(uint256 pickupId, address deliveryAgent, uint256 shopId);
+    event RationReceiptConfirmed(uint256 pickupId, uint256 shopId);
+    event InventoryUpdated(uint256 shopId, uint256 itemId, uint256 newQuantity);
+    event LowStockAlert(uint256 shopId, uint256 itemId, uint256 currentQuantity);
+
     // Users memory
     address public creator;
     uint256 public quantityOfBag;
@@ -71,6 +92,13 @@ contract PDS {
     mapping (address => bool) public consumer;
     mapping (uint256 => _ItemsAvailable) public items;
     mapping (uint256 => _Bag) public bags;
+    
+    mapping (address => bool) public deliveryAgents;
+    mapping (uint256 => _RationPickup) public rationPickups;
+    uint256 public nextPickupId;
+
+    // Mapping: shopId => (itemId => quantity)
+    mapping(uint256 => mapping(uint256 => uint256)) public shopInventory;
     
     uint256 public ordersCount;
     uint256 public transfersCount;
@@ -94,6 +122,11 @@ contract PDS {
 
     modifier onlyStateOrDistrictAdmin() {
         require(stateAdmin[msg.sender] || districtAdmin[msg.sender], "Error: Caller is not a State or District Admin");
+        _;
+    }
+
+    modifier onlyDeliveryAgent() {
+        require(deliveryAgents[msg.sender], "Error: Caller is not a Delivery Agent");
         _;
     }
 
@@ -189,6 +222,74 @@ contract PDS {
         // We removed the orders array to save massive amounts of gas!
         ordersCount++;
         emit Order(ordersCount, _customer, _shopId, _itemIds, _quantities, block.timestamp);
+    }
+
+    // ============ DELIVERY AGENT FUNCTIONS ============
+
+    function addDeliveryAgent(address _user) public onlyStateAdmin {
+        deliveryAgents[_user] = true;
+        emit DeliveryAgentAdded(_user);
+    }
+
+    function removeDeliveryAgent(address _user) public onlyStateAdmin {
+        deliveryAgents[_user] = false;
+        emit DeliveryAgentRemoved(_user);
+    }
+
+    function assignRationPickup(address _deliveryAgent, uint256 _shopId, uint256[] memory _bagIds) public onlyStateAdmin {
+        require(deliveryAgents[_deliveryAgent], "Error: Invalid delivery agent");
+        require(shops[_shopId].exists, "Error: Invalid shop");
+
+        nextPickupId++;
+        rationPickups[nextPickupId] = _RationPickup({
+            id: nextPickupId,
+            deliveryAgent: _deliveryAgent,
+            shopId: _shopId,
+            bagIds: _bagIds,
+            status: PickupStatus.Assigned,
+            assignedTime: block.timestamp
+        });
+
+        emit RationPickupAssigned(nextPickupId, _deliveryAgent, _shopId);
+    }
+
+    function markRationPickedUp(uint256 _pickupId) public onlyDeliveryAgent {
+        require(rationPickups[_pickupId].deliveryAgent == msg.sender, "Error: Not assigned to you");
+        require(rationPickups[_pickupId].status == PickupStatus.Assigned, "Error: Invalid status");
+
+        rationPickups[_pickupId].status = PickupStatus.PickedUp;
+        emit RationPickedUp(_pickupId, msg.sender);
+    }
+
+    function markRationDelivered(uint256 _pickupId) public onlyDeliveryAgent {
+        require(rationPickups[_pickupId].deliveryAgent == msg.sender, "Error: Not assigned to you");
+        require(rationPickups[_pickupId].status == PickupStatus.PickedUp, "Error: Must pick up first");
+
+        rationPickups[_pickupId].status = PickupStatus.Delivered;
+        emit RationDeliveredToShop(_pickupId, msg.sender, rationPickups[_pickupId].shopId);
+    }
+
+    function confirmRationReceipt(uint256 _pickupId) public {
+        uint256 shopId = rationPickups[_pickupId].shopId;
+        require(shops[shopId].account == msg.sender, "Error: Caller is not the Shop Owner");
+        require(rationPickups[_pickupId].status == PickupStatus.Delivered, "Error: Not delivered yet");
+
+        rationPickups[_pickupId].status = PickupStatus.Confirmed;
+        emit RationReceiptConfirmed(_pickupId, shopId);
+    }
+
+    // ============ INVENTORY MANAGEMENT ============
+
+    function updateShopInventory(uint256 _shopId, uint256 _itemId, uint256 _quantity) public {
+        require(shops[_shopId].account == msg.sender || stateAdmin[msg.sender], "Error: Unauthorized");
+        require(items[_itemId]._id == _itemId, "Error: Item does not exist");
+
+        shopInventory[_shopId][_itemId] = _quantity;
+        emit InventoryUpdated(_shopId, _itemId, _quantity);
+
+        if (_quantity < 10) { // Arbitrary low stock threshold
+            emit LowStockAlert(_shopId, _itemId, _quantity);
+        }
     }
 
 }

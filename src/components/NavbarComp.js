@@ -16,6 +16,7 @@ import Results from './Results';
 import Districtres from './Districtres';
 import Transfer from './Transfer';
 import AddReceivedBags from './AddReceivedBags';
+import AnomalyDashboard from './AnomalyDashboard';
 import img from '../pds_logo.png';
 
 const NavbarComp=({transfered,received, orders})=>{
@@ -42,6 +43,7 @@ const NavbarComp=({transfered,received, orders})=>{
                                 <Nav.Link as={Link} to="/transactions" className='header'>Transactions</Nav.Link>
                                 <Nav.Link as={Link} to="/usertrans" className='header'>Orders</Nav.Link>
                                 <Nav.Link as={Link} to="/districtres" className='header'>Districts</Nav.Link>
+                                <Nav.Link as={Link} to="/ai-insights" className='header' style={{color: 'var(--accent-cyan)'}}>✨ AI Insights</Nav.Link>
                             </Nav>
 
                         </Navbar.Collapse>
@@ -79,6 +81,10 @@ const NavbarComp=({transfered,received, orders})=>{
 
                         <Route path="/order">
                             <Order />
+                        </Route>
+
+                        <Route path="/ai-insights">
+                            <AnomalyDashboard orders={orders} />
                         </Route>
 
                         <Route path="/">

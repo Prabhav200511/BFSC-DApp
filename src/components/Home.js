@@ -33,13 +33,13 @@ export default class Home extends Component {
                             <span className="icon">💡</span> Inspiration
                         </h4>
                         <p>
-                            The COVID era taught us that getting a meal once a day was one of the biggest challenges many people faced.
+                            India's backbone is agriculture, yet food scarcity remains a looming threat due to massive systemic inefficiencies and corruption.
                         </p>
                         <p>
-                            Many ration shop owners stored stock provided by the Government in large amounts and sold them at higher prices, making the needy suffer.
+                            Far too often, rations meant for the needy are diverted by corrupt officials or shop owners who hoard supplies to sell them on the black market at inflated prices.
                         </p>
                         <p>
-                            We wanted to dismantle this situation — so we built a Blockchain-based solution to ensure transparency at every step.
+                            We wanted to dismantle this corrupt system — so we built a Blockchain and AI-powered solution to ensure absolute transparency and automatically detect fraudulent activities at every step.
                         </p>
                     </div>
 
