@@ -22,3 +22,22 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Foundry build artifacts
+/out/
+/cache/
+/lib/
+
+# Foundry default example files
+src/Counter.sol
+script/
+test/Counter.t.sol
+
+# Misc
+compile_out.txt
+DEV_PLAN.md
