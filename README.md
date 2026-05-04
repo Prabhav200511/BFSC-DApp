@@ -1,11 +1,42 @@
-# BFSC2 - Blockchain Public Distribution System
+read me mein ye copy paste krdena
+# BFSC-DApp — Blockchain Public Distribution System
 
-BFSC2 is a React + Truffle + Solidity DApp for demonstrating a transparent Public Distribution System supply chain on a local Ethereum blockchain.
+> **Transparent & Secure Food Supply Chain — powered by Blockchain**
 
-The demo is designed for one laptop:
+REPORT LINK : https://drive.google.com/file/d/13DPUz7OtsCSAMm3dCXqnGvwJCML9fG-M/view?usp=sharing
 
-- Ganache runs a local chain.
-- MetaMask connects to `http://127.0.0.1:7545`.
+VIDEO DEMO LINK :   https://drive.google.com/file/d/1fvYZnVYHHRwJvwYngx5X9hAX-TISEPTW/view?usp=sharing
+
+## 📖 What is this project? 
+
+In India, the government distributes food (rice, wheat, sugar, etc.) to poor families through **Ration Shops** under the **Public Distribution System (PDS)**. However, this system loses thousands of crores every year to corruption:
+- Officials divert bags of food before they reach shops.
+- Shop owners hoard rations to sell on the black market. 
+- Ghost consumers are created to claim extra rations.
+
+**Our Solution**: BFSC-DApp replaces paper records with a **tamper-proof blockchain ledger**. Every bag of food gets a digital serial number. When bags move from the State Warehouse → District → Ration Shop, the transfers are immutably recorded on the Ethereum blockchain. When a consumer buys their rations, the order is permanently logged. 
+
+Additionally, an integrated **AI Engine (Isolation Forest)** analyzes orders in real-time to flag fraudulent patterns (e.g., suspiciously large orders, odd hours).
+
+| Problem (Current System) | Solution (Our System) |
+|---|---|
+| Paper records can be faked | Blockchain records are unfakeable and immutable |
+| Missing bags go unnoticed | Sent vs Received quantities must match on-chain |
+| Fraud discovered months later | AI flags suspicious transactions instantly |
+| Opaque to citizens | 100% transparent audit trail accessible to anyone |
+
+**REPORT LINK :**
+
+**Demonstration Video Link:**
+
+---
+
+## 💻 How to Run the Demo (Single-Laptop Setup)
+
+This project is built using React, Truffle, Solidity, and Python (FastAPI). The demo is designed to run locally on one machine:
+
+- **Ganache** runs a local Ethereum blockchain.
+- **MetaMask** connects to `http://127.0.0.1:7545`.
 - Different Ganache accounts are imported into MetaMask to demonstrate State Admin, District Admin, Shop Owner, Consumer, and Delivery Agent roles.
 - The Web3 Console shows active wallet role proof, contract counters, block number, transaction hashes, and the latest smart contract events.
 
@@ -26,13 +57,13 @@ Open three terminals in this folder.
 
 Terminal 1: start Ganache.
 
-```powershell
+```
 npm run chain
 ```
 
 Terminal 2: compile, deploy, and seed demo data.
 
-```powershell
+```
 npm run contracts:compile
 npm run contracts:migrate
 npm run demo:seed
@@ -41,13 +72,13 @@ npm run demo:roles
 
 Terminal 3: start React.
 
-```powershell
+```
 npm start
 ```
 
 If port `3000` is already occupied, start React on another port:
 
-```powershell
+```
 $env:PORT=3001
 npm start
 ```
@@ -68,14 +99,15 @@ MetaMask setup:
 
 Open `http://localhost:3000/#/blockchain-console` and switch MetaMask accounts to demonstrate each role. If you used another port, replace `3000` with that port.
 
-## Suggested Demo Flow
+## Flow
 
 1. State Admin: tokenize a new bag, add a new item, register a delivery agent, assign pickup `1`.
 2. District Admin: register a shop or consumer.
 3. Consumer: request ration from shop `100` using item IDs `1,2`.
 4. Delivery Agent: mark pickup `1` as picked up, then delivered.
 5. Shop Owner: confirm pickup `1`, attest inventory, and fulfill a consumer order from the existing Make Order page.
-6. Transactions and Web3 Console: show event logs, block numbers, counters, and transaction hashes.
+6. Consumer : Can request Items from the particular shop if they have a vaild adress.
+7. Transactions and Web3 Console: show event logs, block numbers, counters, and transaction hashes.
 
 ## Useful IDs
 
