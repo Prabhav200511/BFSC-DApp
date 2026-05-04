@@ -1,105 +1,56 @@
-import React from 'react'
-import { Navbar, Nav} from 'react-bootstrap'
-import {
-    HashRouter as Router,
-    Switch,
-    Route,
-    Link
-} from "react-router-dom";
+import React, { Component } from 'react'
+import { NavLink } from "react-router-dom";
 
-import Home from './Home';
-import Order from './Order';
-import Details from './Details';
-import Transactions from './Transactions';
-import Usertrans from './Usertrans';
-import Results from './Results';
-import Districtres from './Districtres';
-import Transfer from './Transfer';
-import AddReceivedBags from './AddReceivedBags';
-import AnomalyDashboard from './AnomalyDashboard';
-import BlockchainConsole from './BlockchainConsole';
-import img from '../pds_logo.png';
+const NAV_ITEMS = [
+    { to: "/", label: "Home", icon: "⌂", exact: true },
+    { to: "/blockchain-console", label: "Web3 Console", icon: "◈" },
+    { to: "/details", label: "Shop Lookup", icon: "⊞" },
+    { to: "/order", label: "Make Order", icon: "⊕" },
+    { to: "/transfer", label: "Transfer Bags", icon: "↗" },
+    { to: "/AddReceivedBags", label: "Receive Bags", icon: "↙" },
+    { to: "/transactions", label: "Transactions", icon: "≡" },
+    { to: "/usertrans", label: "Orders", icon: "☰" },
+    { to: "/districtres", label: "Districts", icon: "▦" },
+    { to: "/ai-insights", label: "AI Insights", icon: "◉" },
+];
 
-const NavbarComp=({transfered,received, orders, consumerRequests})=>{
+class NavbarComp extends Component {
+    state = { collapsed: false }
+
+    toggle = () => this.setState(prev => ({ collapsed: !prev.collapsed }))
+
+    render() {
+        const { collapsed } = this.state;
         return (
-            <Router>
-                <div className='navb'>
-
-                    <Navbar bg="transparent" variant={"dark"} expand="lg" className='nvb'>
-                        <Navbar.Brand as={Link} to="/">
-                            <img src={img} width='46px' alt='PDS' style={{borderRadius: '10px'}}/>
-                        </Navbar.Brand>
-                        <Navbar.Toggle aria-controls="navbarScroll" />
-                        <Navbar.Collapse id="navbarScroll">
-                            <Nav
-                                className="ml-auto my-2 my-lg-0"
-                                style={{ flexWrap: 'wrap' }}
-                                navbarScroll
-                            >
-                                <Nav.Link as={Link} to="/home" className='header'>Home</Nav.Link>
-                                <Nav.Link as={Link} to="/blockchain-console" className='header'>Web3&nbsp;Console</Nav.Link>
-                                <Nav.Link as={Link} to="/details" className='header'>Shop&nbsp;Lookup</Nav.Link>
-                                <Nav.Link as={Link} to="/order" className='header'>Make&nbsp;Order</Nav.Link>
-                                <Nav.Link as={Link} to="/transfer" className='header'>Transfer&nbsp;Bags</Nav.Link>
-                                <Nav.Link as={Link} to="/AddReceivedBags" className='header'>Receive&nbsp;Bags</Nav.Link>
-                                <Nav.Link as={Link} to="/transactions" className='header'>Transactions</Nav.Link>
-                                <Nav.Link as={Link} to="/usertrans" className='header'>Orders</Nav.Link>
-                                <Nav.Link as={Link} to="/districtres" className='header'>Districts</Nav.Link>
-                                <Nav.Link as={Link} to="/ai-insights" className='header nav-ai-badge'>AI Insights</Nav.Link>
-                            </Nav>
-
-                        </Navbar.Collapse>
-                    </Navbar>
+            <aside className={`app-sidebar ${collapsed ? 'sidebar--collapsed' : ''}`}>
+                <div className="sidebar-brand">
+                    <span className="sidebar-logo">PDS</span>
+                    {!collapsed && <span className="sidebar-title">Supply Chain</span>}
+                    <button className="sidebar-toggle" onClick={this.toggle} title={collapsed ? 'Expand' : 'Collapse'}>
+                        {collapsed ? '»' : '«'}
+                    </button>
                 </div>
-                <div>
-                    <Switch>
-
-                    <Route path="/transfer">
-                            <Transfer />
-                        </Route>
-                    <Route path="/AddReceivedBags">
-                            <AddReceivedBags />
-                    </Route>
-
-                    <Route path="/districtres">
-                        <Districtres transfered={transfered} received={received} orders={orders}/>
-                        </Route>
-
-                    <Route path="/results">
-                            <Results />
-                        </Route>
-
-                        <Route path="/usertrans">
-                            <Usertrans orders={orders} />
-                        </Route> 
-
-                        <Route path="/transactions">
-                            <Transactions transfered={transfered} received={received}/>
-                        </Route>
-
-                        <Route path="/details">
-                            <Details />
-                        </Route>
-
-                        <Route path="/order">
-                            <Order />
-                        </Route>
-
-                        <Route path="/ai-insights">
-                            <AnomalyDashboard orders={orders} />
-                        </Route>
-
-                        <Route path="/blockchain-console">
-                            <BlockchainConsole consumerRequests={consumerRequests} />
-                        </Route>
-
-                        <Route path="/">
-                            <Home />
-                        </Route>
-                        
-                    </Switch>
+                <nav className="sidebar-nav">
+                    {NAV_ITEMS.map(item => (
+                        <NavLink
+                            key={item.to}
+                            to={item.to}
+                            exact={item.exact}
+                            className="sidebar-link"
+                            activeClassName="sidebar-link--active"
+                            title={item.label}
+                        >
+                            <span className="sidebar-link-icon">{item.icon}</span>
+                            {!collapsed && <span className="sidebar-link-label">{item.label}</span>}
+                        </NavLink>
+                    ))}
+                </nav>
+                <div className="sidebar-footer">
+                    {!collapsed && <span className="sidebar-footnote">Blockchain PDS v2</span>}
                 </div>
-            </Router>
-)}
+            </aside>
+        );
+    }
+}
 
 export default NavbarComp;

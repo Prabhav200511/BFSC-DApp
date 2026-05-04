@@ -43,13 +43,14 @@ module.exports = async function(callback) {
     await pds.addItems(5, "Lentils (Dal)", 80, {from: stateAdmin});
 
     console.log("Adding Bags...");
-    await pds.addBags(1001, "Rice", {from: stateAdmin});
-    await pds.addBags(1002, "Wheat", {from: stateAdmin});
-    await pds.addBags(1003, "Sugar", {from: stateAdmin});
-    await pds.addBags(1004, "Cooking Oil", {from: stateAdmin});
-    await pds.addBags(1005, "Lentils", {from: stateAdmin});
-    await pds.addBags(1006, "Rice", {from: stateAdmin});
-    await pds.addBags(1007, "Wheat", {from: stateAdmin});
+    // Item IDs: 1=Rice, 2=Wheat, 3=Sugar, 4=Cooking Oil, 5=Lentils
+    await pds.addBags(1001, 1, 500, {from: stateAdmin});
+    await pds.addBags(1002, 2, 500, {from: stateAdmin});
+    await pds.addBags(1003, 3, 500, {from: stateAdmin});
+    await pds.addBags(1004, 4, 500, {from: stateAdmin});
+    await pds.addBags(1005, 5, 500, {from: stateAdmin});
+    await pds.addBags(1006, 1, 500, {from: stateAdmin});
+    await pds.addBags(1007, 2, 500, {from: stateAdmin});
 
     console.log("Transferring Bags...");
     await pds.transferedBags(1, 100, [1001, 1002, 1003], {from: stateAdmin});
@@ -66,7 +67,8 @@ module.exports = async function(callback) {
     await pds.orderMade(accounts[4], 101, [4], [2], {from: ganacheShopAccount});
     // Anomalous Order: Suspiciously high quantity!
     await pds.orderMade(creator, 100, [1], [150], {from: ganacheShopAccount});
-    await pds.orderMade(creator, 101, [3, 5], [2, 1], {from: ganacheShopAccount});
+    // Shop 101 only has items 4 and 5
+    await pds.orderMade(creator, 101, [4, 5], [2, 1], {from: ganacheShopAccount});
 
     console.log("\n========================================");
     console.log("Seed data populated successfully!");

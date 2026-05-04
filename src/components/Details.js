@@ -23,9 +23,30 @@ class Details extends Component {
         const {pds}=this.props
         try{
             const shop = await pds.methods.shops(this.state.id).call();
+            
+            // Also fetch the inventory for this shop
+            const itemIdsToCheck = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+            const quantities = await pds.methods.getShopCatalogue(this.state.id, itemIdsToCheck).call();
+            
+            let inventory = [];
+            for(let i=0; i<itemIdsToCheck.length; i++) {
+                if(parseInt(quantities[i]) > 0) {
+                    try {
+                        const itemData = await pds.methods.items(itemIdsToCheck[i]).call();
+                        inventory.push({
+                            id: itemIdsToCheck[i],
+                            name: itemData.name,
+                            price: itemData.price,
+                            quantity: quantities[i]
+                        });
+                    } catch(e) {}
+                }
+            }
+
             this.setState({
                 shop:shop,
-                shopLoaded:true
+                shopLoaded:true,
+                inventory: inventory
             })
         }catch(e){
             this.setState({
@@ -56,15 +77,37 @@ class Details extends Component {
             </div>
         )
     }
+    showInventory = () => {
+        if (!this.state.inventory || this.state.inventory.length === 0) {
+            return (
+                <div className="glass-panel fade-in" style={{padding: '1.5rem', marginTop: '1rem'}}>
+                    <p style={{color: 'var(--text-3)', margin: 0}}>No inventory data for this shop.</p>
+                </div>
+            )
+        }
+        return (
+            <div className="glass-panel fade-in" style={{padding: '1.5rem', marginTop: '1rem'}}>
+                <h4 style={{color: 'var(--text-1)', marginBottom: '1rem', fontWeight: 700}}>Shop Inventory</h4>
+                <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '10px'}}>
+                    {this.state.inventory.map(item => (
+                        <div key={item.id} style={{padding: '12px', background: 'var(--surface-3)', borderRadius: '8px', border: '1px solid var(--border-subtle)'}}>
+                            <div style={{fontWeight: 600, color: 'var(--accent)', marginBottom: '4px'}}>{item.name}</div>
+                            <div style={{display: 'flex', justifyContent: 'space-between', color: 'var(--text-2)', fontSize: '0.85rem'}}>
+                                <span>Stock: <strong style={{color: '#86efac'}}>{item.quantity} kg</strong></span>
+                                <span>₹{item.price}/kg</span>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        )
+    }
+
     render() {
         return (
             <div className="page-wrapper fade-in">
-                <div className='page-header'>
-                    <h2 className='gradient-text'>Shop Details</h2>
-                    <p>Enter a Shop ID below to look up its registered information on the blockchain.</p>
-                </div>
-                
-                <div className="form-card glass-panel">
+                <div className="form-card glass-panel" style={{marginTop: '0'}}>
+                    <h3 style={{marginBottom: '1.5rem', color: 'var(--text-1)', fontWeight: '700'}}>Shop Details</h3>
                     <Form onSubmit={this.onSubmit} className='Har'>
                         <Form.Group className="mb-4" controlId="formBasicId" style={{width: '100%', textAlign: 'left'}}>
                             <Form.Label>Shop ID</Form.Label>
@@ -77,6 +120,7 @@ class Details extends Component {
                     </Form>
                 </div>
                 {this.state.shopLoaded ? this.showCard() : null}
+                {this.state.shopLoaded ? this.showInventory() : null}
             </div>
         )
     }

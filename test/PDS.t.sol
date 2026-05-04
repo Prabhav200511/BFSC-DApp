@@ -68,7 +68,7 @@ contract PDSTest is Test {
         vm.prank(stateAdmin);
         pds.addItems(1, "Rice", 30);
         vm.prank(stateAdmin);
-        pds.addBags(1001, "Rice");
+        pds.addBags(1001, 1, 100);
 
         // 4. Transfer & Receive Bags
         uint256[] memory bagIds = new uint256[](1);

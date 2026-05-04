@@ -7,13 +7,16 @@ const Usertrans = ({orders})=>{
         window.alert('Error in orders!');
     return(
         <div className="page-wrapper fade-in">
-                <div className='page-header'>
-                    <h2 className='gradient-text'>Consumer Orders</h2>
-                    <p>All consumer purchase transactions recorded on the blockchain.</p>
+                <div className="page-header">
+                    <div>
+                        <h3>Consumer Orders</h3>
+                        <p className="page-subtitle">Fulfilled orders emitted by the contract.</p>
+                    </div>
                 </div>
 
-                <div className="table-container">
-                    <Table hover className="table">
+                <div className="glass-panel card-pad">
+                    <div className="table-container">
+                        <Table hover className="table">
                     <thead>
                         <tr>
                         <th>Consumer Account</th>
@@ -27,19 +30,20 @@ const Usertrans = ({orders})=>{
                         {orders.map((transfer, i)=>{
                         return (
                         <tr key={i}>
-                            <td style={{fontFamily: 'monospace', fontSize: '0.8rem', color: 'var(--text-muted)'}}>
+                                <td className="mono">
                                 {transfer.customerMetamaskAccount.slice(0, 8)}...{transfer.customerMetamaskAccount.slice(-6)}
                             </td>
                             <td><span className="badge-chip badge-purple">{transfer.shopId}</span></td>
                             <td>{transfer.itemIds.map((item, j)=><span key={j} className="badge-chip">{item}</span>)}</td>
                             <td>{transfer.eachItemQuantities.map((quantity, j)=><span key={j} className="badge-chip">{quantity}</span>)}</td>
-                            <td style={{color: 'var(--text-muted)', fontSize: '0.85rem'}}>{transfer.time}</td>
+                                <td className="mono">{transfer.time}</td>
                         </tr>
                         )
                         })}
                         
                     </tbody>
-                    </Table>
+                        </Table>
+                    </div>
                 </div>
             </div>
     );

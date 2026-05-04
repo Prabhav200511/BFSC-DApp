@@ -72,12 +72,8 @@ onSubmit = async(event)=>{
     render() {
         return (
             <div className="page-wrapper fade-in">
-                <div className='page-header'>
-                    <h2 className='gradient-text'>Transfer Bags</h2>
-                    <p>Record the transfer of food bags from one authority to another on the blockchain.</p>
-                </div>
-
-                <div className="form-card glass-panel">
+                <div className="form-card glass-panel" style={{marginTop: '0'}}>
+                    <h3 style={{marginBottom: '1.5rem', color: 'var(--text-1)', fontWeight: '700'}}>Transfer Bags</h3>
                     <Form className='Har' onSubmit={this.onSubmit}>
                         
                         <Form.Group className="mb-4" controlId="oid" style={{width: '100%', textAlign: 'left'}}>

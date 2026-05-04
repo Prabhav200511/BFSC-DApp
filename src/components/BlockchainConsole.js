@@ -51,7 +51,8 @@ const ROLE_CONFIG = [
 
 const DEFAULT_FORMS = {
     bagId: '2001',
-    bagItem: 'Rice',
+    bagItemId: '1',
+    bagQuantity: '500',
     itemId: '6',
     itemName: 'Millet',
     itemPrice: '35',
@@ -221,6 +222,23 @@ class BlockchainConsole extends Component {
             const events = await this.loadEvents(pds, web3)
             const activeRole = ROLE_CONFIG.find((role) => roles[role.key])
 
+            // Fetch inventory for active shop
+            let shopInventory = []
+            if (activeShop) {
+                try {
+                    const itemIds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+                    const quantities = await pds.methods.getShopCatalogue(activeShop.id, itemIds).call()
+                    for (let i = 0; i < itemIds.length; i++) {
+                        if (parseInt(quantities[i]) > 0) {
+                            try {
+                                const item = await pds.methods.items(itemIds[i]).call()
+                                shopInventory.push({ id: itemIds[i], name: item.name, price: item.price, quantity: quantities[i] })
+                            } catch(e) {}
+                        }
+                    }
+                } catch(e) {}
+            }
+
             this.setState((prevState) => {
                 const eventIds = events.map((event) => event.id)
                 const freshEvents = prevState.eventSnapshotReady
@@ -239,6 +257,7 @@ class BlockchainConsole extends Component {
                     selectedRole: activeRole ? activeRole.key : prevState.selectedRole,
                     activeShop: activeShop,
                     shops: visibleShops,
+                    shopInventory: shopInventory,
                     counts: {
                         transfers: transfers,
                         received: received,
@@ -503,7 +522,7 @@ class BlockchainConsole extends Component {
             case 'LowStockAlert':
                 return `shop ${data.shopId} item ${data.itemId} low stock ${data.currentQuantity}`
             case 'BagAdded':
-                return `bag ${data.id} | ${data.item}`
+                return `bag ${data.id} | item ${data.itemId} | qty ${data.quantity}`
             case 'ItemAdded':
                 return `item ${data.id} | ${data.name} | price ${data.price}`
             case 'StateAdminAdded':
@@ -550,8 +569,8 @@ class BlockchainConsole extends Component {
 
     addBag = () => {
         const { pds, account } = this.props
-        const { bagId, bagItem } = this.state.forms
-        this.runTxForRole('stateAdmin', 'Bag tokenization', () => pds.methods.addBags(bagId, bagItem).send({ from: account }))
+        const { bagId, bagItemId, bagQuantity } = this.state.forms
+        this.runTxForRole('stateAdmin', 'Bag tokenization', () => pds.methods.addBags(bagId, bagItemId, bagQuantity).send({ from: account }))
     }
 
     addItem = () => {
@@ -613,6 +632,26 @@ class BlockchainConsole extends Component {
         this.runTxForRole('shopOwner', 'Inventory attestation', () => {
             return pds.methods.updateShopInventory(inventoryShopId, inventoryItemId, inventoryQuantity).send({ from: account })
         })
+    }
+
+    loadConsumerCatalogue = async () => {
+        const { pds } = this.props
+        const shopId = this.state.forms.requestShopId
+        if (!shopId) return
+        try {
+            const itemIds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+            const quantities = await pds.methods.getShopCatalogue(shopId, itemIds).call()
+            let catalogue = []
+            for (let i = 0; i < itemIds.length; i++) {
+                if (parseInt(quantities[i]) > 0) {
+                    try {
+                        const item = await pds.methods.items(itemIds[i]).call()
+                        catalogue.push({ id: itemIds[i], name: item.name, price: item.price, quantity: quantities[i] })
+                    } catch(e) {}
+                }
+            }
+            this.setState({ consumerCatalogue: catalogue })
+        } catch(e) { this.setState({ consumerCatalogue: [] }) }
     }
 
     requestOrder = () => {
@@ -852,7 +891,6 @@ class BlockchainConsole extends Component {
     renderRoleInsights = () => {
         return (
             <div className="role-insights-grid">
-                {this.renderSystemFlow()}
                 {this.renderActivityFeed()}
             </div>
         )
@@ -868,7 +906,8 @@ class BlockchainConsole extends Component {
                         <span className="access-chip access-chip-live">STATE_ADMIN</span>
                     </div>
                     {this.renderTextInput('Bag ID', 'bagId', '2001')}
-                    {this.renderTextInput('Bag Item', 'bagItem', 'Rice')}
+                    {this.renderTextInput('Item ID', 'bagItemId', '1 (Rice)')}
+                    {this.renderTextInput('Quantity (kg)', 'bagQuantity', '500')}
                     <Button type="button" variant="primary" disabled={busy} onClick={this.addBag}>Tokenize Bag</Button>
                 </div>
 
@@ -938,6 +977,27 @@ class BlockchainConsole extends Component {
                         <span className="access-chip access-chip-live">CONSUMER</span>
                     </div>
                     {this.renderTextInput('Shop ID', 'requestShopId', '100')}
+                    <Button type="button" variant="outline" disabled={busy} onClick={this.loadConsumerCatalogue} style={{marginBottom: '8px', width: '100%'}}>Load Shop Catalogue</Button>
+                    {this.state.consumerCatalogue && this.state.consumerCatalogue.length > 0 && (
+                        <div className="table-container compact-table" style={{marginBottom: '8px'}}>
+                            <table className="table">
+                                <thead><tr><th>ID</th><th>Item</th><th>Stock</th><th>Price</th></tr></thead>
+                                <tbody>
+                                    {this.state.consumerCatalogue.map((item, i) => (
+                                        <tr key={i}>
+                                            <td><span className="badge-chip">{item.id}</span></td>
+                                            <td>{item.name}</td>
+                                            <td><strong style={{color: parseInt(item.quantity) > 0 ? 'var(--green)' : 'var(--red)'}}>{item.quantity} kg</strong></td>
+                                            <td>₹{item.price}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                    {this.state.consumerCatalogue && this.state.consumerCatalogue.length === 0 && (
+                        <p className="empty-state" style={{marginBottom: '8px'}}>No items in stock at this shop.</p>
+                    )}
                     {this.renderTextInput('Item IDs', 'requestItemIds', '1,2')}
                     {this.renderTextInput('Quantities', 'requestQuantities', '5,3')}
                     <Button type="button" variant="primary" disabled={busy} onClick={this.requestOrder}>Sign Request</Button>
@@ -948,8 +1008,34 @@ class BlockchainConsole extends Component {
 
     renderDeliveryPanel = () => {
         const busy = Boolean(this.state.txLoading)
+        const deliveredIds = new Set(this.state.events.filter(e => e.name === 'RationDeliveredToShop').map(e => String(e.payload.pickupId)))
+        const pickupEvents = this.state.events.filter(e => e.name === 'RationPickupAssigned' && !deliveredIds.has(String(e.payload.pickupId)))
         return (
             <div className="role-action-grid">
+                <div className="console-action-card glass-panel">
+                    <div className="console-action-head">
+                        <h4>Assigned Pickups</h4>
+                        <span className="access-chip access-chip-live">{pickupEvents.length}</span>
+                    </div>
+                    {pickupEvents.length === 0 ? (
+                        <p className="empty-state">No pickups assigned yet.</p>
+                    ) : (
+                        <div className="table-container compact-table">
+                            <table className="table">
+                                <thead><tr><th>Pickup ID</th><th>Shop</th><th>Bags</th></tr></thead>
+                                <tbody>
+                                    {pickupEvents.map((ev, i) => (
+                                        <tr key={i}>
+                                            <td><strong>{ev.payload.pickupId}</strong></td>
+                                            <td>{ev.payload.shopId}</td>
+                                            <td>{ev.payload.bagIds ? Array.from(ev.payload.bagIds).join(', ') : '-'}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </div>
                 <div className="console-action-card glass-panel">
                     <div className="console-action-head">
                         <h4>Pickup Lifecycle</h4>
@@ -1020,6 +1106,32 @@ class BlockchainConsole extends Component {
                     {this.renderTextInput('Inventory Item ID', 'inventoryItemId', '2')}
                     {this.renderTextInput('Quantity', 'inventoryQuantity', '5')}
                     <Button type="button" variant="primary" disabled={busy} onClick={this.updateInventory}>Attest Inventory</Button>
+                </div>
+
+                <div className="console-action-card glass-panel">
+                    <div className="console-action-head">
+                        <h4>Current Inventory</h4>
+                        <span className="access-chip access-chip-live">SHOP_OWNER</span>
+                    </div>
+                    {this.state.shopInventory && this.state.shopInventory.length > 0 ? (
+                        <div className="table-container compact-table">
+                            <table className="table">
+                                <thead><tr><th>Item</th><th>Name</th><th>Stock (kg)</th><th>Price</th></tr></thead>
+                                <tbody>
+                                    {this.state.shopInventory.map((item, i) => (
+                                        <tr key={i}>
+                                            <td><span className="badge-chip">{item.id}</span></td>
+                                            <td>{item.name}</td>
+                                            <td><strong style={{color: parseInt(item.quantity) < 10 ? 'var(--red)' : 'var(--green)'}}>{item.quantity}</strong></td>
+                                            <td>₹{item.price}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    ) : (
+                        <p className="empty-state">{this.state.activeShop ? 'No inventory data. Click Refresh Proof.' : 'No active shop found for this wallet.'}</p>
+                    )}
                 </div>
             </div>
         )
@@ -1161,10 +1273,8 @@ class BlockchainConsole extends Component {
         if (!pds || !account) {
             return (
                 <div className="page-wrapper fade-in">
-                    <div className="page-header">
-                        <h2 className="gradient-text">Web3 Role Console</h2>
-                        <p>Connect MetaMask to load the deployed PDS contract.</p>
-                    </div>
+                    <h3 style={{color: 'var(--text-1)', fontWeight: '700'}}>Web3 Role Console</h3>
+                    <p style={{color: 'var(--text-2)'}}>Connect MetaMask to load the deployed PDS contract.</p>
                 </div>
             )
         }
@@ -1172,16 +1282,14 @@ class BlockchainConsole extends Component {
         return (
             <div className="console-shell fade-in">
                 {this.renderRoleRail()}
-                <main className="console-main">
-                    {this.renderTopBar()}
-                    {statusMessage && <Alert variant="success">{statusMessage}</Alert>}
-                    {errorMessage && <Alert variant="danger">{errorMessage}</Alert>}
-                    {this.renderRoleHeader()}
-                    {this.renderCounts()}
-                    {this.renderRoleInsights()}
-                    {this.renderSelectedRolePanel()}
-                    {this.renderTables()}
-                </main>
+                {this.renderTopBar()}
+                {statusMessage && <Alert variant="success">{statusMessage}</Alert>}
+                {errorMessage && <Alert variant="danger">{errorMessage}</Alert>}
+                {this.renderRoleHeader()}
+                {this.renderCounts()}
+                {this.renderRoleInsights()}
+                {this.renderSelectedRolePanel()}
+                {this.renderTables()}
 
                 {this.renderToastStack()}
 

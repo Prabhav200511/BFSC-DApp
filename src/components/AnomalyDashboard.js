@@ -85,9 +85,11 @@ export default class AnomalyDashboard extends Component {
 
         return (
             <div className="page-wrapper fade-in">
-                <div className='page-header'>
-                    <h2 className='gradient-text'>AI Insights & Fraud Detection</h2>
-                    <p>Real-time anomaly detection powered by Machine Learning (Isolation Forest).</p>
+                <div className="page-header">
+                    <div>
+                        <h3>AI Insights & Fraud Detection</h3>
+                        <p className="page-subtitle">Real-time anomaly detection powered by Machine Learning (Isolation Forest).</p>
+                    </div>
                 </div>
 
                 {error && (
@@ -101,8 +103,9 @@ export default class AnomalyDashboard extends Component {
                         <Spinner animation="border" style={{color: 'var(--accent-cyan)'}} />
                     </div>
                 ) : (
-                    <div className="table-container glass-panel">
-                        <Table hover className="table">
+                    <div className="glass-panel card-pad">
+                        <div className="table-container">
+                            <Table hover className="table">
                             <thead>
                                 <tr>
                                     <th>Status</th>
@@ -132,7 +135,7 @@ export default class AnomalyDashboard extends Component {
                                                     )}
                                                 </td>
                                                 <td><span className="badge-chip badge-purple">{r.shopId}</span></td>
-                                                <td style={{fontSize: '0.85rem', fontFamily: 'monospace', color: 'var(--text-muted)'}}>
+                                                <td className="mono">
                                                     {r.customerMetamaskAccount.substring(0,8)}...
                                                 </td>
                                                 <td>{r.itemIds.length} types</td>
@@ -142,13 +145,14 @@ export default class AnomalyDashboard extends Component {
                                                 <td style={{color: isAnom ? '#ef4444' : 'var(--text-color)'}}>
                                                     {r.ai.reason}
                                                 </td>
-                                                <td style={{color: 'var(--text-muted)', fontSize: '0.85rem'}}>{r.time}</td>
+                                                <td className="mono">{r.time}</td>
                                             </tr>
                                         );
                                     })
                                 )}
                             </tbody>
-                        </Table>
+                            </Table>
+                        </div>
                     </div>
                 )}
             </div>

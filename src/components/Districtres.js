@@ -37,11 +37,14 @@ function Districtres({ transfered, received, orders }) {
     return (
         <div className="page-wrapper fade-in">
           <div className="page-header">
-            <h2 className="gradient-text">District Results</h2>
-            <p>Summary of food distribution per district. Each bag is assumed to contain 100 Kg.</p>
+            <div>
+              <h3>District Results</h3>
+              <p className="page-subtitle">Aggregated transfer vs order quantities per district.</p>
+            </div>
           </div>
-          
-          <div className="table-container">
+
+          <div className="glass-panel card-pad">
+            <div className="table-container">
               <Table hover className="table">
                 <thead>
                   <tr>
@@ -67,14 +70,14 @@ function Districtres({ transfered, received, orders }) {
                                 <td>
                                 {district.bags.map((shop, j)=>{
                                         return(
-                                            <div key={j} style={{padding: '3px 0', color: 'var(--text-primary)'}}>{shop}</div>
+                                            <div key={j} style={{padding: '3px 0'}}>{shop}</div>
                                         )
                                     })}
                                 </td>
                                 <td>
                                 {district.quantity.map((shop, j)=>{
                                         return(
-                                            <div key={j} style={{padding: '3px 0', color: 'var(--text-primary)'}}>{shop}</div>
+                                            <div key={j} style={{padding: '3px 0'}}>{shop}</div>
                                         )
                                     })}
                                 </td>
@@ -90,6 +93,7 @@ function Districtres({ transfered, received, orders }) {
                     })}
                 </tbody>
               </Table>
+            </div>
           </div>
         </div>
       );

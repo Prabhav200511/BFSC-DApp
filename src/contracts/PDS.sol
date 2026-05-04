@@ -20,7 +20,8 @@ contract PDS {
 
     struct _Bag{
         uint256 id;
-        string item;
+        uint256 itemId;
+        uint256 quantity;
     }
 
     enum PickupStatus { Assigned, PickedUp, Delivered, Confirmed }
@@ -76,7 +77,7 @@ contract PDS {
     event ShopRemoved(uint256 id);
     event ConsumerAdded(address consumer);
     event ConsumerRemoved(address consumer);
-    event BagAdded(uint256 id, string item);
+    event BagAdded(uint256 id, uint256 itemId, uint256 quantity);
     event ItemAdded(uint256 id, string name, uint256 price);
     event ItemPriceUpdated(uint256 id, uint256 newPrice);
 
@@ -194,9 +195,10 @@ contract PDS {
         emit ConsumerRemoved(_user);
     }
 
-    function addBags(uint256 _id, string memory _item) public onlyStateAdmin {
-        bags[_id] = _Bag(_id, _item);
-        emit BagAdded(_id, _item);
+    function addBags(uint256 _id, uint256 _itemId, uint256 _quantity) public onlyStateAdmin {
+        require(items[_itemId]._id == _itemId && _itemId != 0, "Error: Item does not exist");
+        bags[_id] = _Bag(_id, _itemId, _quantity);
+        emit BagAdded(_id, _itemId, _quantity);
     }
 
     function addItems(uint256 _id, string memory _name, uint256 _price) public onlyStateAdmin {
@@ -224,6 +226,16 @@ contract PDS {
         
         // We removed the receivedHistory array to save massive amounts of gas!
         receivedCount++;
+        
+        // Auto-update shop inventory
+        for (uint256 i = 0; i < _bagIds.length; i++) {
+            _Bag memory b = bags[_bagIds[i]];
+            if (b.id != 0 && shops[_toId].exists) {
+                shopInventory[_toId][b.itemId] += b.quantity;
+                emit InventoryUpdated(_toId, b.itemId, shopInventory[_toId][b.itemId]);
+            }
+        }
+        
         emit Received(receivedCount, _fromId, _toId, _bagIds, block.timestamp);
     }
 
@@ -233,6 +245,16 @@ contract PDS {
         require(consumer[_customer], "Error: Customer is not a registered Consumer");
         require(_itemIds.length == _quantities.length, "Error: Item IDs and quantities must have the same length");
         require(_itemIds.length > 0, "Error: Order must contain at least one item");
+
+        // Deduct from inventory
+        for (uint256 i = 0; i < _itemIds.length; i++) {
+            require(shopInventory[_shopId][_itemIds[i]] >= _quantities[i], "Error: Insufficient shop inventory");
+            shopInventory[_shopId][_itemIds[i]] -= _quantities[i];
+            emit InventoryUpdated(_shopId, _itemIds[i], shopInventory[_shopId][_itemIds[i]]);
+            if (shopInventory[_shopId][_itemIds[i]] < 10) {
+                emit LowStockAlert(_shopId, _itemIds[i], shopInventory[_shopId][_itemIds[i]]);
+            }
+        }
 
         // We removed the orders array to save massive amounts of gas!
         ordersCount++;
@@ -247,6 +269,7 @@ contract PDS {
         uint256 estimatedCost = 0;
         for (uint256 i = 0; i < _itemIds.length; i++) {
             require(items[_itemIds[i]]._id == _itemIds[i] && _itemIds[i] != 0, "Error: Item does not exist");
+            require(shopInventory[_shopId][_itemIds[i]] >= _quantities[i], "Error: Insufficient shop inventory");
             estimatedCost += items[_itemIds[i]].price * _quantities[i];
         }
 
@@ -313,6 +336,17 @@ contract PDS {
         require(rationPickups[_pickupId].status == PickupStatus.Delivered, "Error: Not delivered yet");
 
         rationPickups[_pickupId].status = PickupStatus.Confirmed;
+        
+        // Auto-update shop inventory
+        uint256[] memory bIds = rationPickups[_pickupId].bagIds;
+        for (uint256 i = 0; i < bIds.length; i++) {
+            _Bag memory b = bags[bIds[i]];
+            if (b.id != 0 && shops[shopId].exists) {
+                shopInventory[shopId][b.itemId] += b.quantity;
+                emit InventoryUpdated(shopId, b.itemId, shopInventory[shopId][b.itemId]);
+            }
+        }
+        
         emit RationReceiptConfirmed(_pickupId, shopId);
     }
 
@@ -328,6 +362,14 @@ contract PDS {
         if (_quantity < 10) { // Arbitrary low stock threshold
             emit LowStockAlert(_shopId, _itemId, _quantity);
         }
+    }
+
+    function getShopCatalogue(uint256 _shopId, uint256[] memory _itemIds) public view returns (uint256[] memory) {
+        uint256[] memory quantities = new uint256[](_itemIds.length);
+        for (uint256 i = 0; i < _itemIds.length; i++) {
+            quantities[i] = shopInventory[_shopId][_itemIds[i]];
+        }
+        return quantities;
     }
 
 }
