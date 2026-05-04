@@ -1938,12 +1938,12 @@
     "1777363354450": {
       "events": {},
       "links": {},
-      "address": "0xe78A0F7E598Cc8b0Bb87894B0F60dD2a88d6a8Ab",
-      "transactionHash": "0xa9cf90a75adc7dd5c93dfb8e76d32ee20de6053e1eef81c9554c57f47faece46"
+      "address": "0xA57B8a5584442B467b4689F1144D269d096A3daF",
+      "transactionHash": "0xec398cb7788b7a5884a3121f2c8e022ef0a6b49558ed285f482569b5d5727ea3"
     }
   },
   "schemaVersion": "3.4.16",
-  "updatedAt": "2026-04-28T08:33:24.833Z",
+  "updatedAt": "2026-05-03T09:39:11.130Z",
   "networkType": "ethereum",
   "devdoc": {
     "kind": "dev",
