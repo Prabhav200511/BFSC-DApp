@@ -43,7 +43,7 @@ const NavbarComp=({transfered,received, orders})=>{
                                 <Nav.Link as={Link} to="/transactions" className='header'>Transactions</Nav.Link>
                                 <Nav.Link as={Link} to="/usertrans" className='header'>Orders</Nav.Link>
                                 <Nav.Link as={Link} to="/districtres" className='header'>Districts</Nav.Link>
-                                <Nav.Link as={Link} to="/ai-insights" className='header' style={{color: 'var(--accent-cyan)'}}>✨ AI Insights</Nav.Link>
+                                <Nav.Link as={Link} to="/ai-insights" className='header nav-ai-badge'>⚡ AI Insights</Nav.Link>
                             </Nav>
 
                         </Navbar.Collapse>

@@ -7,72 +7,117 @@ export default class Home extends Component {
     render() {
         return (
             <div className="home-hero fade-in">
+
+                {/* Hero */}
                 <div className="home-hero-top">
-                    <h1 className='gradient-text'>Public Distribution System</h1>
-                    <p className="subtitle">Transparent & Secure Food Supply Chain — powered by Blockchain</p>
+                    <div style={{display:'flex', justifyContent:'center', marginBottom:'1.5rem'}}>
+                        <span className="home-eyebrow">
+                            <span className="dot"></span>
+                            Live on Local Blockchain
+                        </span>
+                    </div>
+                    <h1 className='gradient-text'>Public Distribution<br/>System</h1>
+                    <p className="subtitle">
+                        A Blockchain &amp; AI-powered platform ensuring every grain of
+                        food reaches the hands it was meant for — transparently and incorruptibly.
+                    </p>
                 </div>
 
-                <div className="home-stats" style={{marginBottom: '2.5rem'}}>
-                    <div className="stat-card glass-panel">
+                {/* Stats */}
+                <div className="home-stats">
+                    <div className="stat-card">
                         <span className="stat-number gradient-text">100%</span>
                         <span className="stat-label">Transparent</span>
                     </div>
-                    <div className="stat-card glass-panel">
+                    <div className="stat-card">
                         <span className="stat-number gradient-text">Web3</span>
                         <span className="stat-label">Powered</span>
                     </div>
-                    <div className="stat-card glass-panel">
+                    <div className="stat-card">
                         <span className="stat-number gradient-text">0</span>
                         <span className="stat-label">Fraud Tolerance</span>
                     </div>
+                    <div className="stat-card">
+                        <span className="stat-number gradient-text">AI</span>
+                        <span className="stat-label">Detection</span>
+                    </div>
                 </div>
-                
+
+                {/* Cards */}
                 <div className="home-content">
                     <div className="home-card glass-panel">
                         <h4 className='gradient-text'>
-                            <span className="icon">💡</span> Inspiration
+                            <span className="icon">💡</span> The Problem
                         </h4>
                         <p>
-                            India's backbone is agriculture, yet food scarcity remains a looming threat due to massive systemic inefficiencies and corruption.
+                            India's backbone is agriculture, yet food scarcity remains a looming
+                            threat due to massive systemic inefficiencies and deep-rooted corruption.
                         </p>
                         <p>
-                            Far too often, rations meant for the needy are diverted by corrupt officials or shop owners who hoard supplies to sell them on the black market at inflated prices.
+                            Rations meant for the needy are routinely diverted by corrupt officials
+                            or shop owners who hoard supplies and sell them on the black market at
+                            inflated prices — robbing millions of their rightful entitlement.
                         </p>
                         <p>
-                            We wanted to dismantle this corrupt system — so we built a Blockchain and AI-powered solution to ensure absolute transparency and automatically detect fraudulent activities at every step.
+                            We built a Blockchain + AI solution to dismantle this system and
+                            guarantee absolute transparency at every step of the supply chain.
                         </p>
+                        <div className="tech-stack">
+                            <span className="tech-pill">Ethereum</span>
+                            <span className="tech-pill">Solidity</span>
+                            <span className="tech-pill">React</span>
+                            <span className="tech-pill">FastAPI</span>
+                            <span className="tech-pill">Isolation Forest</span>
+                        </div>
                     </div>
 
-                    <div className="home-card glass-panel" style={{display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'}}>
-                        <img 
-                            src={img} 
-                            alt="PDS Logo" 
+                    <div className="home-card glass-panel" style={{
+                        display:'flex',
+                        flexDirection:'column',
+                        alignItems:'center',
+                        justifyContent:'center',
+                        gap:'1rem'
+                    }}>
+                        <img
+                            src={img}
+                            alt="PDS Logo"
                             style={{
-                                width: '220px', 
-                                borderRadius: '16px',
-                                marginBottom: '1rem',
-                                animation: 'float 4s ease-in-out infinite'
-                            }} 
+                                width:'180px',
+                                borderRadius:'16px',
+                                animation:'floatY 5s ease-in-out infinite',
+                                filter:'drop-shadow(0 8px 32px rgba(59,130,246,0.25))'
+                            }}
                         />
-                        <p style={{textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem'}}>
+                        <p style={{
+                            textAlign:'center',
+                            color:'var(--text-3)',
+                            fontSize:'0.8rem',
+                            letterSpacing:'0.5px',
+                            textTransform:'uppercase',
+                            fontWeight:600
+                        }}>
                             Built for Dotslash 5.0
                         </p>
                     </div>
                 </div>
-                
-                <div className="home-objective glass-panel">
-                    <h4 className='gradient-text'>
-                        <span className="icon">🎯</span> Objective
-                    </h4>
-                    <p>
-                        We provide transparency in the food supply chain using Blockchain. 
-                        Each bag of food is tracked from origin to end-user using unique identifiers 
-                        stored immutably on the blockchain at every checkpoint. 
-                        The state government generates these identifiers, which travel through district 
-                        authorities to ration shops. Quantities are verified at each stage, 
-                        ensuring zero fraud or corruption.
-                    </p>
+
+                {/* Objective */}
+                <div style={{marginTop:'1.5rem'}}>
+                    <div className="home-objective glass-panel">
+                        <h4 className='gradient-text'>
+                            <span className="icon">🎯</span> How It Works
+                        </h4>
+                        <p>
+                            Every bag of food is assigned a unique on-chain identifier at the state level.
+                            That identifier travels immutably through district authorities to ration shops,
+                            with quantities cryptographically verified at each checkpoint.
+                            Our AI engine monitors every order in real-time, flagging anomalous patterns —
+                            unusual quantities, off-hours orders, or suspicious item combinations — before
+                            they become fraud.
+                        </p>
+                    </div>
                 </div>
+
             </div>
         )
     }
