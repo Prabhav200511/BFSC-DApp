@@ -77,11 +77,11 @@ async function main() {
   await send("Adding item 3 Sugar", pds.methods.addItems(3, "Sugar", 40), stateAdmin);
   await send("Adding item 4 Cooking Oil", pds.methods.addItems(4, "Cooking Oil", 120), stateAdmin);
 
-  await send("Tokenizing bag 1001", pds.methods.addBags(1001, "Rice"), stateAdmin);
-  await send("Tokenizing bag 1002", pds.methods.addBags(1002, "Wheat"), stateAdmin);
-  await send("Tokenizing bag 1003", pds.methods.addBags(1003, "Sugar"), stateAdmin);
-  await send("Tokenizing bag 1004", pds.methods.addBags(1004, "Cooking Oil"), stateAdmin);
-  await send("Tokenizing bag 1005", pds.methods.addBags(1005, "Rice"), stateAdmin);
+  await send("Tokenizing bag 1001", pds.methods.addBags(1001, 1, 1), stateAdmin);
+  await send("Tokenizing bag 1002", pds.methods.addBags(1002, 2, 1), stateAdmin);
+  await send("Tokenizing bag 1003", pds.methods.addBags(1003, 3, 1), stateAdmin);
+  await send("Tokenizing bag 1004", pds.methods.addBags(1004, 4, 1), stateAdmin);
+  await send("Tokenizing bag 1005", pds.methods.addBags(1005, 1, 1), stateAdmin);
 
   await send("State to District transfer", pds.methods.transferedBags(0, 20, [1001, 1002, 1003, 1004, 1005]), stateAdmin, 800000);
   await send("District to Shop 100 transfer", pds.methods.transferedBags(20, 100, [1001, 1002, 1003]), districtAdmin, 800000);
