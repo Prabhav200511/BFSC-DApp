@@ -1,18 +1,18 @@
 import React, { Component } from 'react'
-import './App.css'
 import moment from 'moment'
+import 'bootstrap/dist/css/bootstrap.min.css';
+import './App.css'
 
 // import Navbar from './Navbar'
 // import Content from './Content'
 import { connect } from 'react-redux'
 import {
   loadWeb3,
+  loadNetwork,
   loadAccount,
   loadPDS,
 } from '../store/interactions'
 import { pdsLoadedSelector } from '../store/selectors'
-import './App.css';
-import 'bootstrap/dist/css/bootstrap.min.css';
 import NavbarComp from './NavbarComp';
 
 class App extends Component {
@@ -22,18 +22,29 @@ class App extends Component {
     this.state = {
       transfered:[],
       received:[],
-      orders:[]
+      orders:[],
+      consumerRequests:[]
     };
 
   }
-  componentWillMount() {
+
+  componentDidMount() {
     this.loadBlockchainData(this.props.dispatch)
+    if(window.ethereum) {
+      window.ethereum.on('accountsChanged', () => {
+        this.loadBlockchainData(this.props.dispatch)
+      })
+      window.ethereum.on('chainChanged', () => {
+        this.loadBlockchainData(this.props.dispatch)
+      })
+    }
   }
 
   async loadBlockchainData(dispatch) {
 
     const web3 = await loadWeb3(dispatch)
-    const networkId = await web3.eth.net.getId()
+    if(!web3) return
+    const networkId = await loadNetwork(web3, dispatch)
     await loadAccount(web3, dispatch)
     const pds = await loadPDS(web3, networkId, dispatch)
     if(!pds) {
@@ -86,10 +97,26 @@ class App extends Component {
     }
     })
     console.log('orders',orders);    
+
+    const consumerRequestHistory = await pds.getPastEvents('ConsumerOrderRequested', { fromBlock: 0, toBlock: 'latest' })
+    const consumerRequests = await consumerRequestHistory.map((event) => {
+      const data = event.returnValues;
+      return {
+        consumerMetamaskAccount: data.consumerAddress,
+        shopId: data.shopId,
+        itemIds: data.itemIds,
+        eachItemQuantities: data.quantities,
+        estimatedCost: data.estimatedCost,
+        time: moment.unix(data.timestamp).format('dddd, MMMM Do, YYYY h:mm:ss A'),
+      }
+    })
+    console.log('consumerRequests', consumerRequests);
+
     this.setState({
       transfered:transfers,
       received:received,
       orders:orders,
+      consumerRequests:consumerRequests,
     })
     }catch(e){
       window.alert('Transactions not Fetching')
@@ -100,7 +127,12 @@ class App extends Component {
   render() {
     return (
       <div className='App'>
-        <NavbarComp transfered={this.state.transfered} received={this.state.received} orders={this.state.orders}/>
+        <NavbarComp
+          transfered={this.state.transfered}
+          received={this.state.received}
+          orders={this.state.orders}
+          consumerRequests={this.state.consumerRequests}
+        />
       </div>
     );
   }

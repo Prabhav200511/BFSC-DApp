@@ -1,5 +1,6 @@
 import React, { Component } from 'react'
-import { Form, Button, InputGroup, FormControl} from 'react-bootstrap'
+import { Form, Button, InputGroup, FormControl, Alert } from 'react-bootstrap'
+import { withRouter, Link } from 'react-router-dom'
 import './App.css';
 import { connect } from 'react-redux'
 import {pdsSelector,accountSelector} from '../store/selectors'
@@ -10,34 +11,92 @@ class Order extends Component {
         this.state = {
             address:'',
             shopId:'',
-            itemId:'',
-            quantity:'', 
-            inputs: ['input-0']
+            lineItems:[{ itemId:'', quantity:'' }],
+            loading:false,
+            statusMessage:'',
+            errorMessage:'',
+            fromPendingRequest:false
         }
     }
-        appendInput(event) {
-            event.preventDefault();
-            var newInput = `input-${this.state.inputs.length}`;
-            this.setState(prevState => ({ inputs: prevState.inputs.concat([newInput])}));
+
+    componentDidMount() {
+        this.applyPendingOrderFromRoute()
+    }
+
+    componentDidUpdate(prevProps) {
+        if (prevProps.location !== this.props.location) {
+            this.applyPendingOrderFromRoute()
         }
+    }
+
+    applyPendingOrderFromRoute() {
+        const location = this.props.location || {}
+        const routeOrder = location.state && location.state.pendingOrder
+        const query = new URLSearchParams(location.search || '')
+        const queryOrder = query.get('consumer') ? {
+            address: query.get('consumer'),
+            shopId: query.get('shopId'),
+            itemIds: (query.get('items') || '').split(',').filter(Boolean),
+            quantities: (query.get('quantities') || '').split(',').filter(Boolean)
+        } : null
+        const pendingOrder = routeOrder || queryOrder
+        if (!pendingOrder) return
+
+        const itemIds = pendingOrder.itemIds || []
+        const quantities = pendingOrder.quantities || []
+        const lineItems = itemIds.length > 0
+            ? itemIds.map((itemId, index) => ({
+                itemId: String(itemId),
+                quantity: String(quantities[index] || '')
+            }))
+            : [{ itemId:'', quantity:'' }]
+
+        this.setState({
+            address: pendingOrder.address || '',
+            shopId: pendingOrder.shopId || '',
+            lineItems: lineItems,
+            fromPendingRequest: true,
+            statusMessage: 'Pending request loaded. Review the values, then submit with the Shop Owner wallet.',
+            errorMessage: ''
+        })
+    }
+    appendInput(event) {
+        event.preventDefault();
+        this.setState(prevState => ({ lineItems: prevState.lineItems.concat([{ itemId:'', quantity:'' }])}));
+    }
+
+    updateLineItem(index, field, value) {
+        this.setState(prevState => {
+            const lineItems = prevState.lineItems.slice();
+            lineItems[index] = {
+                ...lineItems[index],
+                [field]: value
+            };
+            return { lineItems };
+        });
+    }
     
-Grid=(input)=>{
+Grid=(lineItem,index)=>{
         return(
-            <div>
+            <div key={`order-line-${index}`}>
                 <InputGroup className="mb-3">
                     <FormControl
                     placeholder="Item Id"
                     aria-label="Item Id"
                     aria-describedby="basic-addon1"
                     className='hr'
-                    onChange = { event => this.setState({itemId:event.target.value})}
+                    value={lineItem.itemId}
+                    disabled={this.state.loading}
+                    onChange = { event => this.updateLineItem(index, 'itemId', event.target.value)}
                     />
                     <FormControl
                     placeholder="Quantity (Kg)"
                     aria-label="Item Quantity"
                     aria-describedby="basic-addon2"
                     className='hr'
-                    onChange = { event => this.setState({quantity:event.target.value})}
+                    value={lineItem.quantity}
+                    disabled={this.state.loading}
+                    onChange = { event => this.updateLineItem(index, 'quantity', event.target.value)}
                     />
                 </InputGroup>
             </div>
@@ -47,27 +106,39 @@ Grid=(input)=>{
 onSubmit = async(event)=>{
     event.preventDefault();
     const {pds,sender}=this.props
+    this.setState({ loading:true, statusMessage:'', errorMessage:'' })
     try{
+        const validLineItems = this.state.lineItems.filter((lineItem) => lineItem.itemId !== '' && lineItem.quantity !== '');
+        if(!pds) {
+            throw new Error('PDS contract is not loaded. Connect MetaMask to the Ganache network and refresh.')
+        }
+        if(!sender) {
+            throw new Error('Connect MetaMask with the Shop Owner wallet first.')
+        }
+        if(!this.state.address || !this.state.shopId || validLineItems.length === 0) {
+            throw new Error('Consumer account, shop ID, and at least one item are required.')
+        }
         const order = {
             address:this.state.address,
             shopId:this.state.shopId,
-            itemId:[this.state.itemId],
-            quantity:[this.state.quantity]
+            itemId:validLineItems.map((lineItem) => lineItem.itemId),
+            quantity:validLineItems.map((lineItem) => lineItem.quantity)
         }
         console.log("order 11",order);
-          await pds.methods.orderMade(order.address,order.shopId,order.itemId,order.quantity).send({ from: sender })
-          .on('transactionHash', (hash) => {
-            console.log('Order of Consumer', hash);
-            alert('Adding Orders to Database successful')
-
+        const receipt = await pds.methods.orderMade(order.address,order.shopId,order.itemId,order.quantity).send({ from: sender })
+        console.log('Order of Consumer', receipt.transactionHash);
+        this.setState({
+            loading:false,
+            statusMessage:`Order fulfilled on-chain in block ${receipt.blockNumber}. Returning to the Web3 Console so the pending queue can refresh.`,
+            errorMessage:'',
+            fromPendingRequest:false
         })
-        .on('error',(error) => {
-          console.error(error)
-          window.alert(`There was an error with Order Made or No access to the database`)
-        })
+        setTimeout(() => {
+            if(this.props.history) this.props.history.push('/blockchain-console')
+        }, 1200)
 
     }catch(err){
-        this.setState({errorMessage:err.message});
+        this.setState({errorMessage:err.message, loading:false});
     }        
 };
     render() {
@@ -80,28 +151,54 @@ onSubmit = async(event)=>{
 
                 <div className="form-card glass-panel">
                     <Form className='Har' onSubmit={this.onSubmit}>
+                        {this.state.fromPendingRequest && (
+                            <div className="pending-order-banner">
+                                <div>
+                                    <strong>Pending request selected</strong>
+                                    <span>Consumer, shop, item ID, and quantity were autofilled from the blockchain request event.</span>
+                                </div>
+                                <Link to="/blockchain-console" className="text-link">Back to console</Link>
+                            </div>
+                        )}
+
+                        <div className="order-feedback-stack">
+                            {this.state.statusMessage && <Alert variant="info">{this.state.statusMessage}</Alert>}
+                            {this.state.errorMessage && <Alert variant="danger">{this.state.errorMessage}</Alert>}
+                        </div>
                         
                         <Form.Group className="mb-4" controlId="oid" style={{width: '100%', textAlign: 'left'}}>
                             <Form.Label>Consumer Account</Form.Label>
-                            <Form.Control type="text" placeholder="Enter consumer wallet address" onChange = { event => this.setState({address:event.target.value})}/>
+                            <Form.Control
+                                type="text"
+                                placeholder="Enter consumer wallet address"
+                                value={this.state.address}
+                                disabled={this.state.loading}
+                                onChange = { event => this.setState({address:event.target.value})}
+                            />
                         </Form.Group>
 
                         <Form.Group className="mb-4" controlId="did" style={{width: '100%', textAlign: 'left'}}>
                             <Form.Label>Shop ID</Form.Label>
-                            <Form.Control type="text" placeholder="Enter shop ID" onChange = { event => this.setState({shopId:event.target.value})}/>
+                            <Form.Control
+                                type="text"
+                                placeholder="Enter shop ID"
+                                value={this.state.shopId}
+                                disabled={this.state.loading}
+                                onChange = { event => this.setState({shopId:event.target.value})}
+                            />
                         </Form.Group>
 
                         <Form.Group className="mb-3" controlId="itemid" style={{width: '100%', textAlign: 'left'}}>
                             <Form.Label>Items & Quantities</Form.Label>
-                            {this.state.inputs.map(input => this.Grid())}
+                            {this.state.lineItems.map((lineItem, index) => this.Grid(lineItem, index))}
                         </Form.Group>
 
                         <div className="btn-group-actions">
-                            <button type="button" className="btn-outline" onClick={ (e) => this.appendInput(e) }>
+                            <button type="button" className="btn-outline" disabled={this.state.loading} onClick={ (e) => this.appendInput(e) }>
                                 + Add Another Item
                             </button>
-                            <Button variant="primary" type="submit">
-                                Submit Order
+                            <Button variant="primary" type="submit" disabled={this.state.loading}>
+                                {this.state.loading ? 'Submitting...' : 'Submit Order'}
                             </Button>
                         </div>
                     </Form>
@@ -119,4 +216,4 @@ function mapStateToProps(state) {
     }
   }
   
-export default connect(mapStateToProps)(Order)
+export default withRouter(connect(mapStateToProps)(Order))

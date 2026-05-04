@@ -91,6 +91,53 @@ contract PDSTest is Test {
         vm.prank(shopAccount);
         pds.orderMade(consumerAccount, 100, itemIds, quantities);
         assertEq(pds.ordersCount(), 1, "Order count should increment");
+
+        vm.prank(consumerAccount);
+        pds.placeConsumerOrder(100, itemIds, quantities);
+        assertEq(pds.consumerRequestsCount(), 1, "Consumer request count should increment");
+    }
+
+    function test_Integration_ConsumerPlacesOwnOrderRequest() public {
+        vm.prank(creator);
+        pds.addStateAdmins(stateAdmin);
+        vm.prank(stateAdmin);
+        pds.addDistrictAdmins(districtAdmin);
+        vm.prank(districtAdmin);
+        pds.addShops(100, "Test Shop", shopAccount, "Test Loc");
+        vm.prank(districtAdmin);
+        pds.addConsumer(consumerAccount);
+        vm.prank(stateAdmin);
+        pds.addItems(1, "Rice", 30);
+
+        uint256[] memory itemIds = new uint256[](1);
+        itemIds[0] = 1;
+        uint256[] memory quantities = new uint256[](1);
+        quantities[0] = 5;
+
+        vm.prank(consumerAccount);
+        pds.placeConsumerOrder(100, itemIds, quantities);
+
+        assertEq(pds.consumerRequestsCount(), 1, "Consumer request count should increment");
+    }
+
+    function test_Integration_ConsumerOrderRequestRevertsWhenUnregistered() public {
+        vm.prank(creator);
+        pds.addStateAdmins(stateAdmin);
+        vm.prank(stateAdmin);
+        pds.addDistrictAdmins(districtAdmin);
+        vm.prank(districtAdmin);
+        pds.addShops(100, "Test Shop", shopAccount, "Test Loc");
+        vm.prank(stateAdmin);
+        pds.addItems(1, "Rice", 30);
+
+        uint256[] memory itemIds = new uint256[](1);
+        itemIds[0] = 1;
+        uint256[] memory quantities = new uint256[](1);
+        quantities[0] = 5;
+
+        vm.prank(unauthorizedUser);
+        vm.expectRevert("Error: Caller is not a registered Consumer");
+        pds.placeConsumerOrder(100, itemIds, quantities);
     }
 
     function test_Integration_DeliveryAgentWorkflow() public {

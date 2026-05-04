@@ -10,26 +10,33 @@ class Transfer extends Component {
         this.state = {
             fromId:'',
             toId:'',
-            bagId:'',
-            inputs: ['input-0']
+            bagIds:['']
         }
     }
         appendInput(event) {
             event.preventDefault();
-            var newInput = `input-${this.state.inputs.length}`;
-            this.setState(prevState => ({ inputs: prevState.inputs.concat([newInput])}));
+            this.setState(prevState => ({ bagIds: prevState.bagIds.concat([''])}));
+        }
+
+        updateBagId(index, value) {
+            this.setState(prevState => {
+                const bagIds = prevState.bagIds.slice();
+                bagIds[index] = value;
+                return { bagIds };
+            });
         }
     
-Grid=(input)=>{
+Grid=(bagId,index)=>{
         return(
-            <div>
+            <div key={`bag-${index}`}>
                 <InputGroup className="mb-3">
                     <FormControl
                     placeholder="Bag Id"
                     aria-label="Bag Id"
                     aria-describedby="basic-addon1"
                     className='hr'
-                    onChange = { event => this.setState({bagId:event.target.value})}
+                    value={bagId}
+                    onChange = { event => this.updateBagId(index, event.target.value)}
                     />
                 </InputGroup>
             </div>
@@ -43,7 +50,7 @@ onSubmit = async(event)=>{
         const order = {
             fromId:this.state.fromId,
             toId:this.state.toId,
-            bagIds:[this.state.bagId],
+            bagIds:this.state.bagIds.filter((bagId) => bagId !== ''),
         }
 
           await pds.methods.transferedBags(order.fromId,order.toId,order.bagIds).send({ from: sender })
@@ -85,7 +92,7 @@ onSubmit = async(event)=>{
 
                         <Form.Group className="mb-3" controlId="itemid" style={{width: '100%', textAlign: 'left'}}>
                             <Form.Label>Bag IDs</Form.Label>
-                            {this.state.inputs.map(input => this.Grid())}
+                            {this.state.bagIds.map((bagId, index) => this.Grid(bagId, index))}
                         </Form.Group>
 
                         <div className="btn-group-actions">

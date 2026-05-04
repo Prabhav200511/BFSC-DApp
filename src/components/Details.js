@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { Form, Button, Card } from 'react-bootstrap'
+import { Form, Button } from 'react-bootstrap'
 import { connect } from 'react-redux'
 import {pdsSelector} from '../store/selectors'
 

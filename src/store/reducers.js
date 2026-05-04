@@ -6,6 +6,8 @@ function web3(state = {}, action) {
       return { ...state,  connection: action.connection }
     case 'WEB3_ACCOUNT_LOADED':
       return { ...state, account: action.account }
+    case 'WEB3_NETWORK_LOADED':
+      return { ...state, networkId: action.networkId }
     default:
       return state
   }

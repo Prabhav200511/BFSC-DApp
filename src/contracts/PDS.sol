@@ -57,6 +57,15 @@ contract PDS {
         uint256[] quantities,
         uint256 timestamp
     );
+    event ConsumerOrderRequested(
+        uint256 id,
+        address consumerAddress,
+        uint256 shopId,
+        uint256[] itemIds,
+        uint256[] quantities,
+        uint256 estimatedCost,
+        uint256 timestamp
+    );
 
     // Setup Events
     event StateAdminAdded(address admin);
@@ -101,6 +110,7 @@ contract PDS {
     mapping(uint256 => mapping(uint256 => uint256)) public shopInventory;
     
     uint256 public ordersCount;
+    uint256 public consumerRequestsCount;
     uint256 public transfersCount;
     uint256 public receivedCount;
 
@@ -127,6 +137,11 @@ contract PDS {
 
     modifier onlyDeliveryAgent() {
         require(deliveryAgents[msg.sender], "Error: Caller is not a Delivery Agent");
+        _;
+    }
+
+    modifier onlyConsumer() {
+        require(consumer[msg.sender], "Error: Caller is not a registered Consumer");
         _;
     }
 
@@ -222,6 +237,29 @@ contract PDS {
         // We removed the orders array to save massive amounts of gas!
         ordersCount++;
         emit Order(ordersCount, _customer, _shopId, _itemIds, _quantities, block.timestamp);
+    }
+
+    function placeConsumerOrder(uint256 _shopId, uint256[] memory _itemIds, uint256[] memory _quantities) public onlyConsumer {
+        require(shops[_shopId].exists, "Error: Shop does not exist");
+        require(_itemIds.length == _quantities.length, "Error: Item IDs and quantities must have the same length");
+        require(_itemIds.length > 0, "Error: Order must contain at least one item");
+
+        uint256 estimatedCost = 0;
+        for (uint256 i = 0; i < _itemIds.length; i++) {
+            require(items[_itemIds[i]]._id == _itemIds[i] && _itemIds[i] != 0, "Error: Item does not exist");
+            estimatedCost += items[_itemIds[i]].price * _quantities[i];
+        }
+
+        consumerRequestsCount++;
+        emit ConsumerOrderRequested(
+            consumerRequestsCount,
+            msg.sender,
+            _shopId,
+            _itemIds,
+            _quantities,
+            estimatedCost,
+            block.timestamp
+        );
     }
 
     // ============ DELIVERY AGENT FUNCTIONS ============

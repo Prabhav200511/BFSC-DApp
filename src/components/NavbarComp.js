@@ -1,7 +1,7 @@
 import React from 'react'
 import { Navbar, Nav} from 'react-bootstrap'
 import {
-    BrowserRouter as Router,
+    HashRouter as Router,
     Switch,
     Route,
     Link
@@ -17,9 +17,10 @@ import Districtres from './Districtres';
 import Transfer from './Transfer';
 import AddReceivedBags from './AddReceivedBags';
 import AnomalyDashboard from './AnomalyDashboard';
+import BlockchainConsole from './BlockchainConsole';
 import img from '../pds_logo.png';
 
-const NavbarComp=({transfered,received, orders})=>{
+const NavbarComp=({transfered,received, orders, consumerRequests})=>{
         return (
             <Router>
                 <div className='navb'>
@@ -36,6 +37,7 @@ const NavbarComp=({transfered,received, orders})=>{
                                 navbarScroll
                             >
                                 <Nav.Link as={Link} to="/home" className='header'>Home</Nav.Link>
+                                <Nav.Link as={Link} to="/blockchain-console" className='header'>Web3&nbsp;Console</Nav.Link>
                                 <Nav.Link as={Link} to="/details" className='header'>Shop&nbsp;Lookup</Nav.Link>
                                 <Nav.Link as={Link} to="/order" className='header'>Make&nbsp;Order</Nav.Link>
                                 <Nav.Link as={Link} to="/transfer" className='header'>Transfer&nbsp;Bags</Nav.Link>
@@ -43,7 +45,7 @@ const NavbarComp=({transfered,received, orders})=>{
                                 <Nav.Link as={Link} to="/transactions" className='header'>Transactions</Nav.Link>
                                 <Nav.Link as={Link} to="/usertrans" className='header'>Orders</Nav.Link>
                                 <Nav.Link as={Link} to="/districtres" className='header'>Districts</Nav.Link>
-                                <Nav.Link as={Link} to="/ai-insights" className='header nav-ai-badge'>⚡ AI Insights</Nav.Link>
+                                <Nav.Link as={Link} to="/ai-insights" className='header nav-ai-badge'>AI Insights</Nav.Link>
                             </Nav>
 
                         </Navbar.Collapse>
@@ -85,6 +87,10 @@ const NavbarComp=({transfered,received, orders})=>{
 
                         <Route path="/ai-insights">
                             <AnomalyDashboard orders={orders} />
+                        </Route>
+
+                        <Route path="/blockchain-console">
+                            <BlockchainConsole consumerRequests={consumerRequests} />
                         </Route>
 
                         <Route path="/">

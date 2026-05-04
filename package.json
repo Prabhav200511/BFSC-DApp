@@ -39,6 +39,12 @@
     "web3": "1.2.6"
   },
   "scripts": {
+    "chain": "ganache-cli --deterministic --port 7545 --networkId 5777",
+    "contracts:compile": "node scripts/compile_pds_artifact.js",
+    "contracts:migrate": "node scripts/deploy_pds.js",
+    "demo:seed": "node scripts/demo_setup.js",
+    "demo:roles": "node scripts/check_roles.js",
+    "dev": "react-scripts start",
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
@@ -61,5 +67,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "solc": "^0.8.10"
   }
 }

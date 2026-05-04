@@ -13,6 +13,13 @@ export function web3AccountLoaded(account) {
   }
 }
 
+export function web3NetworkLoaded(networkId) {
+  return {
+    type: 'WEB3_NETWORK_LOADED',
+    networkId
+  }
+}
+
 // PDS
 export function pdsLoaded(contract) {
   return {

@@ -2,6 +2,7 @@ import Web3 from 'web3'
 import {
   web3Loaded,
   web3AccountLoaded,
+  web3NetworkLoaded,
   pdsLoaded,
 } from './actions'
 import PDS from '../abis/PDS.json'
@@ -16,6 +17,12 @@ export const loadWeb3 = async (dispatch) => {
     window.alert('Please install MetaMask')
     window.location.assign("https://metamask.io/")
   }
+}
+
+export const loadNetwork = async (web3, dispatch) => {
+  const networkId = await web3.eth.net.getId()
+  dispatch(web3NetworkLoaded(networkId))
+  return networkId
 }
 
 export const loadAccount = async (web3, dispatch) => {

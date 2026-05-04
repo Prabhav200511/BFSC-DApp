@@ -7,6 +7,9 @@ export const accountSelector = createSelector(account, a => a)
 const web3 = state => get(state, 'web3.connection')
 export const web3Selector = createSelector(web3, w => w)
 
+const networkId = state => get(state, 'web3.networkId')
+export const networkIdSelector = createSelector(networkId, n => n)
+
 const pdsLoaded = state => get(state, 'pds.loaded', false)
 export const pdsLoadedSelector = createSelector(pdsLoaded, tl => tl)
 
